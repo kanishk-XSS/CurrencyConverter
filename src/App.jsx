@@ -1,28 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import Inputbox from './Components/inputbox'
+import UseCurrencyInfo from './Hooks/UseCurrencyInfo';
 
 function App() {
-  const [from, setFrom] = useState('USD');
-  const [to, setTo] = useState('INR');
+  const [from, setFrom] = useState('usd');
+  const [to, setTo] = useState('inr');
   const [amount, setAmount] = useState('');
   const [convertedAmount, setConvertedAmount] = useState('')
-  const [data, setData] = useState()
 
-  useEffect(() => {
-    fetch(`https://api.exchangerate.host/list?access_key=8bf0633db99abfd8ffd0132b9e0e8a91`)
-      .then((res) => res.json())
-      .then((res) => setData(res.currencies))
-      .catch((err) => console.error("API error:", err));
-  }, [])
+  const options = UseCurrencyInfo()
 
-  console.log(data)
-
-  if (!data) {
-    return <p className="text-center mt-10">Loading currencies...</p>;
-  }
-
-  const options = Object.keys(data)
   
   const swap = () => {
     setFrom(to);
@@ -31,23 +19,12 @@ function App() {
     setConvertedAmount(amount);
   }
   
-  const convert = () => {
-   
-    if (!amount || amount === '0') return;
-    
-    fetch(
-      `https://api.exchangerate.host/convert?access_key=8bf0633db99abfd8ffd0132b9e0e8a91&from=${from}&to=${to}&amount=${amount}`
-    )
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success) {
-          setConvertedAmount(res.result.toString());
-        } else {
-          console.error("Conversion failed:", res.error);
-        }
-      })
-      .catch((err) => console.error("Conversion error:", err));
-  }
+  const convert = async() => {
+  if (!amount || amount === '0') return;
+  let res = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${from}.json`)
+  const data = await res.json()
+  setConvertedAmount((data[from][to]*amount).toFixed(2))
+};
 
   const handleSubmit = (event) => {
     event.preventDefault();
